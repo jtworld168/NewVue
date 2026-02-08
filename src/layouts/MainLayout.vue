@@ -31,7 +31,8 @@
       <el-header class="header">
         <div class="header-left">
           <el-icon class="collapse-icon" @click="toggleCollapse">
-            <component :is="isCollapse ? 'Expand' : 'Fold'" />
+            <Fold v-if="!isCollapse" />
+            <Expand v-else />
           </el-icon>
         </div>
         <div class="header-right">
@@ -67,8 +68,6 @@ import {
   DataAnalysis,
   User,
   Setting,
-  Expand,
-  Fold,
   ArrowDown
 } from '@element-plus/icons-vue'
 

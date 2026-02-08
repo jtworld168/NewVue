@@ -12,7 +12,6 @@
           </template>
           
           <el-form
-            ref="basicFormRef"
             :model="basicSettings"
             label-width="120px"
           >
@@ -60,7 +59,6 @@
           </template>
           
           <el-form
-            ref="notificationFormRef"
             :model="notificationSettings"
             label-width="120px"
           >
@@ -104,7 +102,6 @@
           </template>
           
           <el-form
-            ref="securityFormRef"
             :model="securitySettings"
             label-width="120px"
           >
@@ -184,13 +181,8 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive } from 'vue'
+import { reactive } from 'vue'
 import { ElMessage } from 'element-plus'
-import type { FormInstance } from 'element-plus'
-
-const basicFormRef = ref<FormInstance>()
-const notificationFormRef = ref<FormInstance>()
-const securityFormRef = ref<FormInstance>()
 
 const basicSettings = reactive({
   systemName: '后台管理系统',
