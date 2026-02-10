@@ -9,6 +9,8 @@ import com.campus.bikesharing.service.WalletService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/api/wallets")
 public class WalletController {
@@ -51,5 +53,11 @@ public class WalletController {
     public Result<?> delete(@PathVariable Integer id) {
         walletService.removeById(id);
         return Result.success("Deleted successfully", null);
+    }
+
+    @DeleteMapping("/batch")
+    public Result<?> batchDelete(@RequestBody List<Integer> ids) {
+        walletService.removeByIds(ids);
+        return Result.success("批量删除成功", null);
     }
 }

@@ -10,6 +10,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+
 @RestController
 @RequestMapping("/api/bicycles")
 public class BicycleController {
@@ -57,5 +61,22 @@ public class BicycleController {
     public Result<?> delete(@PathVariable Integer id) {
         bicycleService.removeById(id);
         return Result.success("Deleted successfully", null);
+    }
+
+    @DeleteMapping("/batch")
+    public Result<?> batchDelete(@RequestBody List<Integer> ids) {
+        bicycleService.removeByIds(ids);
+        return Result.success("批量删除成功", null);
+    }
+
+    @GetMapping("/count-by-station")
+    public Result<?> countByStation() {
+        LambdaQueryWrapper<Bicycle> wrapper = new LambdaQueryWrapper<>();
+        wrapper.isNotNull(Bicycle::getCurrentStationId)
+               .eq(Bicycle::getStatus, 0);
+        List<Bicycle> bikes = bicycleService.list(wrapper);
+        Map<Integer, Long> countMap = bikes.stream()
+            .collect(Collectors.groupingBy(Bicycle::getCurrentStationId, Collectors.counting()));
+        return Result.success(countMap);
     }
 }

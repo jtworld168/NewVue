@@ -9,6 +9,8 @@ import com.campus.bikesharing.service.MaintenanceRecordService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/api/maintenance-records")
 public class MaintenanceRecordController {
@@ -54,5 +56,11 @@ public class MaintenanceRecordController {
     public Result<?> delete(@PathVariable Long id) {
         maintenanceRecordService.removeById(id);
         return Result.success("Deleted successfully", null);
+    }
+
+    @DeleteMapping("/batch")
+    public Result<?> batchDelete(@RequestBody List<Long> ids) {
+        maintenanceRecordService.removeByIds(ids);
+        return Result.success("批量删除成功", null);
     }
 }

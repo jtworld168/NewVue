@@ -10,6 +10,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/api/stations")
 public class StationController {
@@ -55,5 +57,11 @@ public class StationController {
     public Result<?> delete(@PathVariable Integer id) {
         stationService.removeById(id);
         return Result.success("Deleted successfully", null);
+    }
+
+    @DeleteMapping("/batch")
+    public Result<?> batchDelete(@RequestBody List<Integer> ids) {
+        stationService.removeByIds(ids);
+        return Result.success("批量删除成功", null);
     }
 }

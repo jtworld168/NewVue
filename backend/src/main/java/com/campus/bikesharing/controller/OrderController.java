@@ -9,6 +9,8 @@ import com.campus.bikesharing.service.OrderService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/api/orders")
 public class OrderController {
@@ -56,5 +58,11 @@ public class OrderController {
     public Result<?> delete(@PathVariable Long id) {
         orderService.removeById(id);
         return Result.success("Deleted successfully", null);
+    }
+
+    @DeleteMapping("/batch")
+    public Result<?> batchDelete(@RequestBody List<Long> ids) {
+        orderService.removeByIds(ids);
+        return Result.success("批量删除成功", null);
     }
 }

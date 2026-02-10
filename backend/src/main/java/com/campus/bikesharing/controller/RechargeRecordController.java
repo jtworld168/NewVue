@@ -9,6 +9,8 @@ import com.campus.bikesharing.service.RechargeRecordService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/api/recharge-records")
 public class RechargeRecordController {
@@ -54,5 +56,11 @@ public class RechargeRecordController {
     public Result<?> delete(@PathVariable Long id) {
         rechargeRecordService.removeById(id);
         return Result.success("Deleted successfully", null);
+    }
+
+    @DeleteMapping("/batch")
+    public Result<?> batchDelete(@RequestBody List<Long> ids) {
+        rechargeRecordService.removeByIds(ids);
+        return Result.success("批量删除成功", null);
     }
 }

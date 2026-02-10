@@ -16,6 +16,8 @@ public class Bicycle {
 
     private String bikeNo;
 
+    private String imageUrl;
+
     private Integer type;
 
     private Integer status;

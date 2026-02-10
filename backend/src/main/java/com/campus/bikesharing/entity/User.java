@@ -24,6 +24,8 @@ public class User {
 
     private String email;
 
+    private String avatar;
+
     private Integer userType;
 
     private Integer status;
