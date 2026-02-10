@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, reactive, onMounted } from 'vue'
-import { getRechargeList, addRecharge, updateRecharge, deleteRecharge } from '../api/recharge'
+import { getRechargeList, addRecharge, updateRecharge, deleteRecharge, batchDeleteRecharge } from '../api/recharge'
 import { ElMessage, ElMessageBox } from 'element-plus'
 
 const tableData = ref<any[]>([])
@@ -10,6 +10,7 @@ const pageSize = ref(10)
 const dialogVisible = ref(false)
 const dialogTitle = ref('新增充值记录')
 const isEdit = ref(false)
+const selectedIds = ref<number[]>([])
 
 const searchForm = reactive({ userId: '', status: '' as string | number })
 const form = reactive({
@@ -61,6 +62,18 @@ const handleDelete = (id: number) => {
   }).catch(() => {})
 }
 
+const handleSelectionChange = (rows: any[]) => {
+  selectedIds.value = rows.map((r: any) => r.id)
+}
+
+const handleBatchDelete = () => {
+  if (selectedIds.value.length === 0) { ElMessage.warning('请选择要删除的记录'); return }
+  ElMessageBox.confirm(`确认删除选中的 ${selectedIds.value.length} 条记录？`, '提示', { type: 'warning' }).then(async () => {
+    try { await batchDeleteRecharge(selectedIds.value); ElMessage.success('批量删除成功'); loadData() }
+    catch (e: any) { ElMessage.error(e.message || '批量删除失败') }
+  }).catch(() => {})
+}
+
 onMounted(loadData)
 </script>
 
@@ -78,8 +91,12 @@ onMounted(loadData)
         <el-button @click="resetSearch">重置</el-button>
       </el-form-item>
     </el-form>
-    <el-button type="primary" style="margin-bottom:16px" @click="handleAdd">新增</el-button>
-    <el-table :data="tableData" border stripe>
+    <div style="margin-bottom:16px">
+      <el-button type="primary" @click="handleAdd">新增</el-button>
+      <el-button type="danger" @click="handleBatchDelete">批量删除</el-button>
+    </div>
+    <el-table :data="tableData" border stripe @selection-change="handleSelectionChange">
+      <el-table-column type="selection" width="50" />
       <el-table-column prop="id" label="ID" width="60" />
       <el-table-column prop="userId" label="用户ID" />
       <el-table-column prop="amount" label="金额" />

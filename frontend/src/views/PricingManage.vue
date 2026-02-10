@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, reactive, onMounted } from 'vue'
-import { getPricingList, addPricing, updatePricing, deletePricing } from '../api/pricing'
+import { getPricingList, addPricing, updatePricing, deletePricing, batchDeletePricing } from '../api/pricing'
 import { ElMessage, ElMessageBox } from 'element-plus'
 
 const tableData = ref<any[]>([])
@@ -10,6 +10,7 @@ const pageSize = ref(10)
 const dialogVisible = ref(false)
 const dialogTitle = ref('新增费用规则')
 const isEdit = ref(false)
+const selectedIds = ref<number[]>([])
 
 const searchForm = reactive({ ruleName: '', status: '' as string | number })
 const form = reactive({
@@ -63,6 +64,18 @@ const handleDelete = (id: number) => {
   }).catch(() => {})
 }
 
+const handleSelectionChange = (rows: any[]) => {
+  selectedIds.value = rows.map((r: any) => r.id)
+}
+
+const handleBatchDelete = () => {
+  if (selectedIds.value.length === 0) { ElMessage.warning('请选择要删除的记录'); return }
+  ElMessageBox.confirm(`确认删除选中的 ${selectedIds.value.length} 条记录？`, '提示', { type: 'warning' }).then(async () => {
+    try { await batchDeletePricing(selectedIds.value); ElMessage.success('批量删除成功'); loadData() }
+    catch (e: any) { ElMessage.error(e.message || '批量删除失败') }
+  }).catch(() => {})
+}
+
 onMounted(loadData)
 </script>
 
@@ -80,8 +93,12 @@ onMounted(loadData)
         <el-button @click="resetSearch">重置</el-button>
       </el-form-item>
     </el-form>
-    <el-button type="primary" style="margin-bottom:16px" @click="handleAdd">新增</el-button>
-    <el-table :data="tableData" border stripe>
+    <div style="margin-bottom:16px">
+      <el-button type="primary" @click="handleAdd">新增</el-button>
+      <el-button type="danger" @click="handleBatchDelete">批量删除</el-button>
+    </div>
+    <el-table :data="tableData" border stripe @selection-change="handleSelectionChange">
+      <el-table-column type="selection" width="50" />
       <el-table-column prop="id" label="ID" width="60" />
       <el-table-column prop="ruleName" label="规则名称" />
       <el-table-column prop="basePrice" label="起步价" />
