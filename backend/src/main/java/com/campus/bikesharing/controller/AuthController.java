@@ -5,7 +5,7 @@ import com.campus.bikesharing.common.Result;
 import com.campus.bikesharing.entity.User;
 import com.campus.bikesharing.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.util.DigestUtils;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 
@@ -17,6 +17,8 @@ public class AuthController {
 
     @Autowired
     private UserService userService;
+
+    private final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
     @PostMapping("/login")
     public Result<?> login(@RequestBody Map<String, String> loginForm) {
@@ -35,8 +37,7 @@ public class AuthController {
             return Result.error("User not found");
         }
 
-        String encrypted = DigestUtils.md5DigestAsHex(password.getBytes());
-        if (!encrypted.equals(user.getPassword())) {
+        if (!passwordEncoder.matches(password, user.getPassword())) {
             return Result.error("Incorrect password");
         }
 
@@ -60,7 +61,7 @@ public class AuthController {
             return Result.error("Username already exists");
         }
 
-        user.setPassword(DigestUtils.md5DigestAsHex(user.getPassword().getBytes()));
+        user.setPassword(passwordEncoder.encode(user.getPassword()));
         userService.save(user);
         user.setPassword(null);
         return Result.success("Registration successful", user);
