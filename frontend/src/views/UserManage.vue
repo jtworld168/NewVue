@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, reactive, onMounted } from 'vue'
-import { getUserList, addUser, updateUser, deleteUser } from '../api/user'
+import { getUserList, addUser, updateUser, deleteUser, batchDeleteUser } from '../api/user'
 import { ElMessage, ElMessageBox } from 'element-plus'
 
 const tableData = ref<any[]>([])
@@ -10,6 +10,7 @@ const pageSize = ref(10)
 const dialogVisible = ref(false)
 const dialogTitle = ref('新增用户')
 const isEdit = ref(false)
+const selectedIds = ref<number[]>([])
 
 const searchForm = reactive({ username: '', realName: '', phone: '' })
 const form = reactive({
@@ -20,6 +21,7 @@ const form = reactive({
   identityNumber: '',
   phone: '',
   email: '',
+  avatar: '',
   userType: 0,
   status: 0
 })
@@ -53,7 +55,7 @@ const resetSearch = () => {
 
 const resetForm = () => {
   form.id = undefined; form.username = ''; form.password = ''; form.realName = ''
-  form.identityNumber = ''; form.phone = ''; form.email = ''; form.userType = 0; form.status = 0
+  form.identityNumber = ''; form.phone = ''; form.email = ''; form.avatar = ''; form.userType = 0; form.status = 0
 }
 
 const handleAdd = () => { resetForm(); isEdit.value = false; dialogTitle.value = '新增用户'; dialogVisible.value = true }
@@ -76,6 +78,18 @@ const handleDelete = (id: number) => {
   }).catch(() => {})
 }
 
+const handleSelectionChange = (rows: any[]) => {
+  selectedIds.value = rows.map((r: any) => r.id)
+}
+
+const handleBatchDelete = () => {
+  if (selectedIds.value.length === 0) { ElMessage.warning('请选择要删除的记录'); return }
+  ElMessageBox.confirm(`确认删除选中的 ${selectedIds.value.length} 条记录？`, '提示', { type: 'warning' }).then(async () => {
+    try { await batchDeleteUser(selectedIds.value); ElMessage.success('批量删除成功'); loadData() }
+    catch (e: any) { ElMessage.error(e.message || '批量删除失败') }
+  }).catch(() => {})
+}
+
 onMounted(loadData)
 </script>
 
@@ -90,9 +104,20 @@ onMounted(loadData)
         <el-button @click="resetSearch">重置</el-button>
       </el-form-item>
     </el-form>
-    <el-button type="primary" style="margin-bottom:16px" @click="handleAdd">新增</el-button>
-    <el-table :data="tableData" border stripe>
+    <div style="margin-bottom:16px">
+      <el-button type="primary" @click="handleAdd">新增</el-button>
+      <el-button type="danger" @click="handleBatchDelete">批量删除</el-button>
+    </div>
+    <el-table :data="tableData" border stripe @selection-change="handleSelectionChange">
+      <el-table-column type="selection" width="50" />
       <el-table-column prop="id" label="ID" width="60" />
+      <el-table-column label="头像" width="80">
+        <template #default="scope">
+          <el-avatar :size="36" :src="scope.row.avatar">
+            <el-icon :size="18"><User /></el-icon>
+          </el-avatar>
+        </template>
+      </el-table-column>
       <el-table-column prop="username" label="用户名" />
       <el-table-column prop="realName" label="真实姓名" />
       <el-table-column prop="identityNumber" label="学号/工号" />
@@ -112,7 +137,7 @@ onMounted(loadData)
         </template>
       </el-table-column>
     </el-table>
-    <el-pagination style="margin-top:16px" v-model:current-page="currentPage" v-model:page-size="pageSize" :total="total" :page-sizes="[10,20,50]" layout="total, sizes, prev, pager, next" @size-change="loadData" @current-change="loadData" />
+    <el-pagination style="margin-top:16px" v-model:current-page="currentPage" v-model:page-size="pageSize" :total="total" :page-sizes="[10,20,50]" layout="total, sizes, prev, pager, next, jumper" @size-change="loadData" @current-change="loadData" />
 
     <el-dialog v-model="dialogVisible" :title="dialogTitle" width="500px">
       <el-form :model="form" label-width="100px">
@@ -122,6 +147,7 @@ onMounted(loadData)
         <el-form-item label="学号/工号"><el-input v-model="form.identityNumber" /></el-form-item>
         <el-form-item label="手机号"><el-input v-model="form.phone" /></el-form-item>
         <el-form-item label="邮箱"><el-input v-model="form.email" /></el-form-item>
+        <el-form-item label="头像URL"><el-input v-model="form.avatar" placeholder="请输入头像图片URL" /></el-form-item>
         <el-form-item label="用户类型">
           <el-select v-model="form.userType"><el-option v-for="o in userTypeOptions" :key="o.value" :label="o.label" :value="o.value" /></el-select>
         </el-form-item>

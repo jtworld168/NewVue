@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, reactive, onMounted } from 'vue'
-import { getBicycleList, addBicycle, updateBicycle, deleteBicycle } from '../api/bicycle'
+import { getBicycleList, addBicycle, updateBicycle, deleteBicycle, batchDeleteBicycle } from '../api/bicycle'
 import { ElMessage, ElMessageBox } from 'element-plus'
 
 const tableData = ref<any[]>([])
@@ -10,11 +10,13 @@ const pageSize = ref(10)
 const dialogVisible = ref(false)
 const dialogTitle = ref('新增单车')
 const isEdit = ref(false)
+const selectedIds = ref<number[]>([])
 
 const searchForm = reactive({ bikeNo: '', type: '' as string | number, status: '' as string | number })
 const form = reactive({
   id: undefined as number | undefined,
   bikeNo: '',
+  imageUrl: '',
   type: 0,
   status: 0,
   currentStationId: undefined as number | undefined,
@@ -49,7 +51,7 @@ const handleSearch = () => { currentPage.value = 1; loadData() }
 const resetSearch = () => { searchForm.bikeNo = ''; searchForm.type = ''; searchForm.status = ''; handleSearch() }
 
 const resetForm = () => {
-  form.id = undefined; form.bikeNo = ''; form.type = 0; form.status = 0
+  form.id = undefined; form.bikeNo = ''; form.imageUrl = ''; form.type = 0; form.status = 0
   form.currentStationId = undefined; form.batteryLevel = undefined; form.purchaseDate = ''; form.lastMaintenanceTime = ''
 }
 
@@ -66,6 +68,18 @@ const handleSubmit = async () => {
 const handleDelete = (id: number) => {
   ElMessageBox.confirm('确认删除该记录？', '提示', { type: 'warning' }).then(async () => {
     try { await deleteBicycle(id); ElMessage.success('删除成功'); loadData() } catch (e: any) { ElMessage.error(e.message || '删除失败') }
+  }).catch(() => {})
+}
+
+const handleSelectionChange = (rows: any[]) => {
+  selectedIds.value = rows.map((r: any) => r.id)
+}
+
+const handleBatchDelete = () => {
+  if (selectedIds.value.length === 0) { ElMessage.warning('请选择要删除的记录'); return }
+  ElMessageBox.confirm(`确认删除选中的 ${selectedIds.value.length} 条记录？`, '提示', { type: 'warning' }).then(async () => {
+    try { await batchDeleteBicycle(selectedIds.value); ElMessage.success('批量删除成功'); loadData() }
+    catch (e: any) { ElMessage.error(e.message || '批量删除失败') }
   }).catch(() => {})
 }
 
@@ -91,9 +105,19 @@ onMounted(loadData)
         <el-button @click="resetSearch">重置</el-button>
       </el-form-item>
     </el-form>
-    <el-button type="primary" style="margin-bottom:16px" @click="handleAdd">新增</el-button>
-    <el-table :data="tableData" border stripe>
+    <div style="margin-bottom:16px">
+      <el-button type="primary" @click="handleAdd">新增</el-button>
+      <el-button type="danger" @click="handleBatchDelete">批量删除</el-button>
+    </div>
+    <el-table :data="tableData" border stripe @selection-change="handleSelectionChange">
+      <el-table-column type="selection" width="50" />
       <el-table-column prop="id" label="ID" width="60" />
+      <el-table-column label="图片" width="80">
+        <template #default="scope">
+          <el-image v-if="scope.row.imageUrl" :src="scope.row.imageUrl" style="width:50px;height:50px" fit="cover" :preview-src-list="[scope.row.imageUrl]" />
+          <span v-else>暂无</span>
+        </template>
+      </el-table-column>
       <el-table-column prop="bikeNo" label="编号" />
       <el-table-column prop="type" label="类型">
         <template #default="scope">{{ typeOptions.find(o => o.value === scope.row.type)?.label }}</template>
@@ -113,11 +137,12 @@ onMounted(loadData)
         </template>
       </el-table-column>
     </el-table>
-    <el-pagination style="margin-top:16px" v-model:current-page="currentPage" v-model:page-size="pageSize" :total="total" :page-sizes="[10,20,50]" layout="total, sizes, prev, pager, next" @size-change="loadData" @current-change="loadData" />
+    <el-pagination style="margin-top:16px" v-model:current-page="currentPage" v-model:page-size="pageSize" :total="total" :page-sizes="[10,20,50]" layout="total, sizes, prev, pager, next, jumper" @size-change="loadData" @current-change="loadData" />
 
     <el-dialog v-model="dialogVisible" :title="dialogTitle" width="500px">
       <el-form :model="form" label-width="120px">
         <el-form-item label="编号"><el-input v-model="form.bikeNo" /></el-form-item>
+        <el-form-item label="图片URL"><el-input v-model="form.imageUrl" placeholder="请输入单车图片URL" /></el-form-item>
         <el-form-item label="类型">
           <el-select v-model="form.type"><el-option v-for="o in typeOptions" :key="o.value" :label="o.label" :value="o.value" /></el-select>
         </el-form-item>

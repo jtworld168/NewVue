@@ -5,3 +5,4 @@ export const getPricingById = (id: number) => request.get(`/api/pricing-rules/${
 export const addPricing = (data: any) => request.post('/api/pricing-rules', data)
 export const updatePricing = (data: any) => request.put('/api/pricing-rules', data)
 export const deletePricing = (id: number) => request.delete(`/api/pricing-rules/${id}`)
+export const batchDeletePricing = (ids: number[]) => request.delete('/api/pricing-rules/batch', { data: ids })

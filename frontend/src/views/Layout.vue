@@ -40,7 +40,12 @@ const menuItems = [
     </el-aside>
     <el-container>
       <el-header style="display:flex;justify-content:flex-end;align-items:center;background:#fff;box-shadow:0 1px 4px rgba(0,0,0,.08)">
-        <span style="margin-right:16px">{{ userStore.userInfo?.username || '管理员' }}</span>
+        <div style="display:flex;align-items:center;margin-right:16px">
+          <el-avatar :size="36" :src="userStore.userInfo?.avatar" style="margin-right:10px">
+            <el-icon :size="20"><User /></el-icon>
+          </el-avatar>
+          <span>{{ userStore.userInfo?.realName || userStore.userInfo?.username || '管理员' }}</span>
+        </div>
         <el-button type="danger" size="small" @click="handleLogout">退出登录</el-button>
       </el-header>
       <el-main style="background:#f0f2f5;padding:20px">

@@ -5,3 +5,4 @@ export const getRechargeById = (id: number) => request.get(`/api/recharge-record
 export const addRecharge = (data: any) => request.post('/api/recharge-records', data)
 export const updateRecharge = (data: any) => request.put('/api/recharge-records', data)
 export const deleteRecharge = (id: number) => request.delete(`/api/recharge-records/${id}`)
+export const batchDeleteRecharge = (ids: number[]) => request.delete('/api/recharge-records/batch', { data: ids })
